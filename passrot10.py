@@ -177,7 +177,7 @@ nparts=len(args.fa)
 if args.vacuum:
     raise NameError('Vacuum calculations are not approved. Check code first.')
 
-if args.polar == circular:
+if args.polar == 'circular':
     raise NameError('Calculations with circular exciation laser polarisation are not approved. Check code first.')
 
 if args.scale:
