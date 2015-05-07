@@ -180,9 +180,6 @@ if args.vacuum:
 if args.polar == 'circular':
     raise NameError('Calculations with circular exciation laser polarisation are not approved. Check code first.')
 
-if args.scale:
-    raise NameError('Scale option is not approved. Check code first.')
-
 allA = [ProteinRef() for fa in args.fa]
 for fname,A in zip(args.fa,allA):
     if not args.env_ab:
