@@ -15,9 +15,6 @@ from mypython.ProteinRef import ProteinRef,check_consistency
 # in eV*nm
 hc = 1239.842
 
-
-    
-
             
 def doublecos2weight(qin,qout):
     raise NameError('doublecos2weight: Still to be done.')
@@ -37,18 +34,12 @@ def addcos2_matrix(allqin,allqabsin,allqout,allqabsout):
     illuI = 0
     int1=np.abs(args.w_args[0])
     int2=np.abs(args.w_args[2])
-    int3=np.abs(args.w_args[4])
-    int4=np.abs(args.w_args[6])
     totex1=1-(1*np.sqrt(np.pi)*scipy.special.erf(np.sqrt(int1)))/(2*np.sqrt(int1)) if int1 != 0 else 0
     totex2=1-(1*np.sqrt(np.pi)*scipy.special.erf(np.sqrt(int2)))/(2*np.sqrt(int2)) if int2 != 0 else 0
-    totex3=3-(3*np.sqrt(np.pi)*scipy.special.erf(int3))/(2*np.sqrt(int3)) if int3 != 0 else 0
-    totex4=3-(3*np.sqrt(np.pi)*scipy.special.erf(int4))/(2*np.sqrt(int4)) if int4 != 0 else 0
     norm1=1.0/totex1
     norm2=1.0/totex2
     refint1=args.w_args[1]
     refint2=args.w_args[3]
-    refint3=args.w_args[5]
-    refint4=args.w_args[7]
     print totex1,totex2
     for k,(qabs,i_in,nq_in,i_out,nq_out) in enumerate(zip(allqabsin.abs,allqabsin.index,allqabsin.nq,allqabsout.i_out,allqabsout.nq_out)):
         print "Calculation for qabs = "+str(qabs)
@@ -62,7 +53,7 @@ def addcos2_matrix(allqin,allqabsin,allqout,allqabsout):
                     elif args.mtype == 'planar':
                         raise NameError('planar: Still to be done.')
         else:
-            output[k][0][0] = refint1+refint2+refint3+refint4
+            output[k][0][0] = refint1+refint2
      
         if args.illustrate and len(args.illustrate) > illuI and qabs >= args.illustrate[illuI] and k > 0:
             illuI += 1
@@ -77,7 +68,6 @@ def cos2_matrix(allqin,allqabsin,allqout,allqabsout):
     illuI = 0
     for k,(qabs,i_in,nq_in,i_out,nq_out) in enumerate(zip(allqabsin.abs,allqabsin.index,allqabsin.nq,allqabsout.i_out,allqabsout.nq_out)):
         print "Calculation for qabs = "+str(qabs)
-#        if k == 1:
         if qabs != 0:
             for i,q_out in enumerate(allqout[i_out:i_out+nq_out]):
                 lq=np.dot(q_out,[0,1,0])/qabs
@@ -136,17 +126,23 @@ funcdict = {
 }
     
 parser = argparse.ArgumentParser(description='Anisotropic pattern by passive rotation.\n\n'
-                                 'Input:\n'
-                                 '*_averagA.xvg for system excited and in ground state.\n'
-                                 'Output:\n'
-                                 'The output files correspond to a Laser excitation perpendicular\n'
-                                 'to the X-ray beam for linear polarisation. We assume a vertical\n'
-                                 'laser beam orientation.\n'
-                                 'In the case of linear polarisation the X-ray beam is perpendic-\n'
-                                 'ular to the laser polarisation.\n'
-                                 'In the case of circular polarisation the normal of the laser\n'
-                                 'exciation is perpendicular to X-ray beam.\n'
-                                 'In both cases the parallel case is writen into *_par.xvg.\n'
+                                 'Input files:\n'
+                                 '*_averagA.xvg for system excited and in ground state.\n\n'
+                                 'Output files:\n'
+                                 '_aniso.dat / _aniso.pdf       2D Scattering pattern.\n'
+                                 '_iso.xvg                      Isotropic component.\n'
+                                 '_m.xvg                        Anisotropic component.\n'
+                                 '_avg.xvg                      Azimutal average.\n'
+                                 '_par.xvg                      Laser polarisation parallel.\n'
+                                 '_H.xvg                        Horizontal cut / 90deg average.\n'
+                                 '_V.xvg                        Vertical cut / 90deg average.\n'
+                                 '_HminV.xvg                    Difference between horizontal and vertical.\n'
+                                 '_alliso.xvg                   Isotropic component from all bins individually.\n'
+                                 '_D.pdf                        Difference term for selected momenta.\n\n'
+                                 'Additional output for numeric calculations:\n'
+                                 '_l2_###.xvg                   Weigts for caculation of different quantities.\n'
+                                 '_45_0.xvg / _45_90.xvg / _90_45_0.xvg / _90_60_30_0.xvg   additional quantities.\n'
+                                 
                                  , formatter_class=RawTextHelpFormatter)
 parser.add_argument('-fa', nargs='+', metavar='_averagA.xvg',help='Average scattering amplitude of System A.')
 parser.add_argument('-fb', nargs='+', metavar='_averagA.xvg',help='Average scattering amplitude of System B.')
@@ -156,8 +152,8 @@ parser.add_argument('-o', metavar='.xvg',help='Output.')
 parser.add_argument('-vacuum', action='store_true', help='Do vacuum calculation.')
 parser.add_argument('-phi', type=int, default=360, help='Number of azimutal data points in 2D output.')
 parser.add_argument('-weight', choices=['cos2','dcos2','addcos2'], default='cos2', help='Weight of different orientations.')
-parser.add_argument('-m', type=float, default=[1,0,0],metavar="x1 y1 z1 (x2 y2 z2)", nargs='+', help='Vector of excitation moment(s). (cos,addcos2: one vector; dcos2: two vector)')
-parser.add_argument('-w_args', type=float, nargs='+', help='Additional arguments for the weight matrix. (only used for addcos2)')
+parser.add_argument('-m', type=float, default=[1,0,0],metavar="", nargs='+', help='Vector of excitation moment(s). (cos2,addcos2: one vector; dcos2: two vector)')
+parser.add_argument('-w_args', type=float, nargs=4,metavar=('intensity1','weight1','intensity2','weight2'), help='(only used for addcos2) laser intensity and corresponding weight after normalisation.\n')
 parser.add_argument('-mtype', choices=['linear','planar'], default='linear',
                    help='Type of the excitation moment.')
 parser.add_argument('-polar', choices=['linear','circular'], default='linear',
