@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.interpolate import griddata
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def write_2D(fname,vec,value,error):
